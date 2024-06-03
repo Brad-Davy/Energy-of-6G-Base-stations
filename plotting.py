@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from colours import *
 
-#%matplotlib inline
+%matplotlib 
 
 plt.rcParams['font.family'] = 'Serif'
 plt.rcParams['font.size'] = 10
@@ -86,6 +86,92 @@ def totalPowerBaseBand():
     plt.xlabel('Frequency / MHz')
     plt.savefig('img/totalBaseBandPower.svg', dpi=500)
     
+def powerOfRFTransmitter(total = False):    
+    
+    powerOfIQ, powerOfATTEN, powerOfBUFF, powerOfFVC, powerOfOFEVC, powerOfFM, powerOfCLK, powerOfDC, powerOfADC = returnRFTransmitterEnergy(FREQUENCY_MAP) 
+   
+
+    if total == False:
+        fig = plt.figure(figsize = (15*cm, 7.5*cm))
+        plt.ylabel('Power / W')
+        plt.xlabel('Frequency / MHz')
+        plt.plot(FREQUENCY_MAP, powerOfIQ / 1000, color=CB91_Blue, label = 'FD')
+        plt.plot(FREQUENCY_MAP, powerOfATTEN / 1000, color=CB91_Green, label = 'CPU')
+        plt.plot(FREQUENCY_MAP, powerOfBUFF/ 1000, color=CB91_Amber, label = 'FEC')
+        plt.plot(FREQUENCY_MAP, powerOfFVC/ 1000, color=CB91_Pink, label = 'FD (NL)')
+        plt.plot(FREQUENCY_MAP, powerOfOFEVC/ 1000, color=CB91_Purple, label = 'OFDM')
+        plt.plot(FREQUENCY_MAP, powerOfFM/ 1000, color=CB91_Violet, label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfCLK/ 1000, color='orange', label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfDC/ 1000, color='orange', label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfADC / 1000, color='orange', label = 'Filter')
+        plt.legend(ncol = 3, frameon=False)
+        plt.savefig('img/componentBaseBandPowerUplink.svg', dpi=500)
+
+    else:
+        fig = plt.figure(figsize = (15*cm, 7.5*cm))
+        plt.ylabel('Power / W')
+        plt.xlabel('Frequency / MHz')
+        total_power = (np.array(powerOfIQ) + np.array(powerOfATTEN) + np.array(powerOfBUFF) + np.array(powerOfFVC) + np.array(powerOfOFEVC) + np.array(powerOfFM) + np.array(powerOfCLK) + np.array(powerOfDC) + np.array(powerOfADC)) / 1000
+        plt.plot(FREQUENCY_MAP, total_power + calculateLeakagePower(total_power), color='black')
+        plt.savefig('img/totalBaseBandPowerUplink.svg', dpi=500)
+
+
+
+
+
+
+def powerOfRFReceiver(total = False):    
+    
+    powerOfIQ, powerOfATTEN, powerOfBUFF, powerOfFVC, powerOfOFEVC, powerOfFM, powerOfCLK, powerOfDC, powerOfADC = returnRFEnergy(FREQUENCY_MAP) 
+   
+
+    if total == False:
+        fig = plt.figure(figsize = (15*cm, 7.5*cm))
+        plt.ylabel('Power / W')
+        plt.xlabel('Frequency / MHz')
+        plt.plot(FREQUENCY_MAP, powerOfIQ / 1000, color=CB91_Blue, label = 'FD')
+        plt.plot(FREQUENCY_MAP, powerOfATTEN / 1000, color=CB91_Green, label = 'CPU')
+        plt.plot(FREQUENCY_MAP, powerOfBUFF/ 1000, color=CB91_Amber, label = 'FEC')
+        plt.plot(FREQUENCY_MAP, powerOfFVC/ 1000, color=CB91_Pink, label = 'FD (NL)')
+        plt.plot(FREQUENCY_MAP, powerOfOFEVC/ 1000, color=CB91_Purple, label = 'OFDM')
+        plt.plot(FREQUENCY_MAP, powerOfFM/ 1000, color=CB91_Violet, label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfCLK/ 1000, color='orange', label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfDC/ 1000, color='orange', label = 'Filter')
+        plt.plot(FREQUENCY_MAP, powerOfADC / 1000, color='orange', label = 'Filter')
+        plt.legend(ncol = 3, frameon=False)
+        plt.savefig('img/componentBaseBandPowerUplink.svg', dpi=500)
+
+    else:
+        fig = plt.figure(figsize = (15*cm, 7.5*cm))
+        plt.ylabel('Power / W')
+        plt.xlabel('Frequency / MHz')
+        total_power = (np.array(powerOfIQ) + np.array(powerOfATTEN) + np.array(powerOfBUFF) + np.array(powerOfFVC) + np.array(powerOfOFEVC) + np.array(powerOfFM) + np.array(powerOfCLK) + np.array(powerOfDC) + np.array(powerOfADC)) / 1000
+        plt.plot(FREQUENCY_MAP, total_power + calculateLeakagePower(total_power), color='black')
+        plt.savefig('img/totalBaseBandPowerUplink.svg', dpi=500)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 def reproduceFigure2():
     
     fig = plt.figure(figsize = (15*cm, 7.5*cm))
@@ -103,8 +189,7 @@ def reproduceFigure2():
     plt.savefig('img/totalBaseBandPower.svg', dpi=500)
     
 
-reproduceFigure2()
-    
+
     
     
     
