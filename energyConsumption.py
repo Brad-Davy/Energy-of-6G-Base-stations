@@ -14,7 +14,7 @@ class MyException(Exception):
 
 LEAKAGE_POWER = 0.1
 GOPS_PER_WATT = 40
-MY_PARAMETERS = {'BW' : 20, 'Ant' : 4, 'M' : 3/4, 'R' : 2, 'dt' : 100, 'df' : 30}
+MY_PARAMETERS = {'BW' : 50, 'Ant' : 2, 'M' : 3/4, 'R' : 2, 'dt' : 1, 'df' : 100}
 
 
 BASE_BAND_COMPONENTS = {'DPD' : True, 'Filter' : True, 'OFDM' : True, 'FD' : True, 
@@ -207,76 +207,6 @@ def calculateLeakagePower(power):
         raise MyException("Input array needs to be a numpy array.")
 
     
-def returnBaseBandDowlinkEnergy(FREQUENCY_MAP):
-    """
-    
-
-    Parameters
-    ----------
-    FREQUENCY_MAP : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    
-    powerOfFD = []
-    powerOfCPU = []
-    powerOfFEC = []
-    powerOfFD_NL = []
-    powerOfOFDM = []
-    powerOfFILETER = []
-    powerOfDPD = []
-    
-    for f in FREQUENCY_MAP:
-        
-        powerOfFD.append(returnTotalBBComponentPower(component = 'FD', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfCPU.append(returnTotalBBComponentPower(component = 'CPU', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfFEC.append(returnTotalBBComponentPower(component = 'FEC', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfFD_NL.append(returnTotalBBComponentPower(component = 'FD_NL', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfOFDM.append(returnTotalBBComponentPower(component = 'OFDM', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfFILETER.append(returnTotalBBComponentPower(component = 'FILTER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfDPD.append(returnTotalBBComponentPower(component = 'DPD', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        
-    return np.array(powerOfFD), np.array(powerOfCPU), np.array(powerOfFEC), np.array(powerOfFD_NL), np.array(powerOfOFDM), np.array(powerOfFILETER), np.array(powerOfDPD)
-    
-def returnBaseBandUplinkEnergy(FREQUENCY_MAP):
-    """
-    
-
-    Parameters
-    ----------
-    FREQUENCY_MAP : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    
-    powerOfFD = []
-    powerOfCPU = []
-    powerOfFEC = []
-    powerOfFD_NL = []
-    powerOfOFDM = []
-    powerOfFILETER = []
-    
-    for f in FREQUENCY_MAP:
-        
-        powerOfFD.append(returnTotalBBComponentPower(component = 'FD', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-        powerOfCPU.append(returnTotalBBComponentPower(component = 'CPU', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-        powerOfFEC.append(returnTotalBBComponentPower(component = 'FEC', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-        powerOfFD_NL.append(returnTotalBBComponentPower(component = 'FD_NL', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-        powerOfOFDM.append(returnTotalBBComponentPower(component = 'OFDM', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-        powerOfFILETER.append(returnTotalBBComponentPower(component = 'FILTER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], download=False))
-    
-    return np.array(powerOfFD), np.array(powerOfCPU), np.array(powerOfFEC), np.array(powerOfFD_NL), np.array(powerOfOFDM), np.array(powerOfFILETER)
-    
 
 # =============================================================================
 # Logic to determine the power used in the RF components 
@@ -337,83 +267,98 @@ def returnTotalRFComponentPower(component, current_values, transmitter = True):
     else:
         return (calculateRFComponentPower(component, current_values, transmitter=False) * RF_COMPONENT_POWER_RECEIVER[component]) 
 
-def returnRFTransmitterEnergy(FREQUENCY_MAP):
-    """
+
+def baseBandUploadPower(parameters = MY_PARAMETERS):
     
+    # =============================================================================
+    # Upload    
+    # =============================================================================
+    
+    FDPower = returnTotalBBComponentPower(component = 'FD', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    CPUPower =  returnTotalBBComponentPower(component = 'CPU', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    FECPower =  returnTotalBBComponentPower(component = 'FEC', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    FD_NLPower =  returnTotalBBComponentPower(component = 'FD_NL', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    OFDMPower =  returnTotalBBComponentPower(component = 'OFDM', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    FILTERPower =  returnTotalBBComponentPower(component = 'FILTER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], download=False)
+    
+    return FDPower + CPUPower + FECPower + FD_NLPower + OFDMPower + FILTERPower
+
+def baseBandDownloadPower(parameters = MY_PARAMETERS):
+    
+    # =============================================================================
+    # Download   
+    # =============================================================================
+    
+    FDPower = returnTotalBBComponentPower(component = 'FD', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    CPUPower =  returnTotalBBComponentPower(component = 'CPU', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FECPower =  returnTotalBBComponentPower(component = 'FEC', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FD_NLPower =  returnTotalBBComponentPower(component = 'FD_NL', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    OFDMPower =  returnTotalBBComponentPower(component = 'OFDM', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FILTERPower =  returnTotalBBComponentPower(component = 'FILTER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    DPDPower =  returnTotalBBComponentPower(component = 'DPD', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    
+    return FDPower + CPUPower + FECPower + FD_NLPower + OFDMPower + FILTERPower + DPDPower
+
+def RFTransmitterPower(parameters = MY_PARAMETERS):
+    
+    
+    IQPower = returnTotalRFComponentPower(component = 'IQMOD', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    ATTENPower = returnTotalRFComponentPower(component = 'ATTEN', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    BUFFPOwer = returnTotalRFComponentPower(component = 'BUFFER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FVCPower = returnTotalRFComponentPower(component = 'FOWARD_VOLTAGE_CONTROL', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FECVPower = returnTotalRFComponentPower(component = 'FEEDBACK_VOLTAGE_CONROL', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    FMPower = returnTotalRFComponentPower(component = 'FEEDBACK_MIXER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    CLKPower = returnTotalRFComponentPower(component = 'CLOCK', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    DCPower = returnTotalRFComponentPower(component = 'DAC_CONCVERTER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    ADCPower = returnTotalRFComponentPower(component = 'ADC_CONTROL', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']])
+    
+    return IQPower + ATTENPower + BUFFPOwer + FVCPower + FECVPower + FMPower + CLKPower + DCPower + ADCPower
+
+def RFReceiverPower(parameters = MY_PARAMETERS):
+
+    powerOfLNA1 = returnTotalRFComponentPower(component = 'LNA1', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerATTEN = returnTotalRFComponentPower(component = 'ATTEN', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerOfLNA2 = returnTotalRFComponentPower(component = 'LNA2', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerOfDUAL_MIXER = returnTotalRFComponentPower(component = 'DUAL_MIXER', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerOfOVGA = returnTotalRFComponentPower(component = 'VGA', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerOfCLKGEN =  returnTotalRFComponentPower(component = 'CLOCK_GEN', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    powerOfADC = returnTotalRFComponentPower(component = 'ADC', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
+    
+    return powerOfLNA1 + powerATTEN + powerOfLNA2 + powerOfDUAL_MIXER + powerOfOVGA + powerOfCLKGEN + powerOfADC
+
+def returnPAPower(parameters = MY_PARAMETERS):
+    load = parameters['dt']
+    total_power_PA = [float(i) for i in open('powerAmplifierLoad.txt', 'r').read().split('\n')]
+    return total_power_PA[load-1]
+
+def returnOverHead(BBPower, RFPower, PAPower):
+    coolingOH = 0.1
+    DC_DCOH = 0.05
+    AC_DCOH = 0.1
+    return (BBPower + RFPower + PAPower) * ((1 + coolingOH)*(1+DC_DCOH)*(1 + AC_DCOH) - 1)
+    
+
+def returnTotalPower(parameters = MY_PARAMETERS):
+    """
 
     Parameters
     ----------
-    FREQUENCY_MAP : TYPE
-        DESCRIPTION.
+    parameters : TYPE, optional
+        DESCRIPTION. The default is MY_PARAMETERS.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    None.
 
     """
     
-    powerOfIQ = []
-    powerOfATTEN = []
-    powerOfBUFF = []
-    powerOfFVC = []
-    powerOfOFEVC = []
-    powerOfFM = []
-    powerOfCLK = []
-    powerOfDC = []
-    powerOfADC = []
+    baseBandPower = baseBandUploadPower(parameters = MY_PARAMETERS) + baseBandDownloadPower(parameters = MY_PARAMETERS)
+    RFPower = RFTransmitterPower(parameters = MY_PARAMETERS) + RFReceiverPower(parameters = MY_PARAMETERS)
+    PAPower = returnPAPower(parameters = MY_PARAMETERS)
+    OHPower = returnOverHead(baseBandPower, RFPower, PAPower)
+    return baseBandPower, RFPower/1000, PAPower, OHPower
     
-    for f in FREQUENCY_MAP:
-        
-        powerOfIQ.append(returnTotalRFComponentPower(component = 'IQMOD', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfATTEN.append(returnTotalRFComponentPower(component = 'ATTEN', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfBUFF.append(returnTotalRFComponentPower(component = 'BUFFER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfFVC.append(returnTotalRFComponentPower(component = 'FOWARD_VOLTAGE_CONTROL', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfOFEVC.append(returnTotalRFComponentPower(component = 'FEEDBACK_VOLTAGE_CONROL', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfFM.append(returnTotalRFComponentPower(component = 'FEEDBACK_MIXER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfCLK.append(returnTotalRFComponentPower(component = 'CLOCK', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfDC.append(returnTotalRFComponentPower(component = 'DAC_CONCVERTER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-        powerOfADC.append(returnTotalRFComponentPower(component = 'ADC_CONTROL', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']]))
-               
-        
-    return np.array(powerOfIQ), np.array(powerOfATTEN), np.array(powerOfBUFF), np.array(powerOfFVC), np.array(powerOfOFEVC), np.array(powerOfFM), np.array(powerOfCLK), np.array(powerOfDC), np.array(powerOfADC)
-    
-
-def returnRFReceiverEnergy(FREQUENCY_MAP):
-    """
-    
-
-    Parameters
-    ----------
-    FREQUENCY_MAP : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-
-    powerOfLNA1 = []
-    powerOfATTEN = []
-    powerOfLNA2 = []
-    powerOfDUAL_MIXER = []
-    powerOfOVGA = []
-    powerOfCLKGEN = []
-    powerOfADC = []
-    
-    for f in FREQUENCY_MAP:
-        
-        powerOfLNA1.append(returnTotalRFComponentPower(component = 'LNA1', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfATTEN.append(returnTotalRFComponentPower(component = 'ATTEN', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfLNA2.append(returnTotalRFComponentPower(component = 'LNA2', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfDUAL_MIXER.append(returnTotalRFComponentPower(component = 'DUAL_MIXER', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfOVGA.append(returnTotalRFComponentPower(component = 'VGA', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfCLKGEN.append(returnTotalRFComponentPower(component = 'CLOCK_GEN', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-        powerOfADC.append(returnTotalRFComponentPower(component = 'ADC', current_values=[f, MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], MY_PARAMETERS['df']], transmitter = False))
-               
-    return np.array(powerOfLNA1), np.array(powerOfATTEN), np.array(powerOfLNA2), np.array(powerOfDUAL_MIXER), np.array(powerOfOVGA), np.array(powerOfCLKGEN), np.array(powerOfADC)
+print(returnTotalPower())
 
 # =============================================================================
 # Some code to reproduce the figure 2 from the Desset et al paper
@@ -489,13 +434,104 @@ def returnFigure2EnergyUplink(LOAD):
     
     return np.array(powerOfFD), np.array(powerOfCPU), np.array(powerOfFEC), np.array(powerOfFD_NL), np.array(powerOfOFDM), np.array(powerOfFILETER)
     
-
-
-
-
+def returnFigure2RFTransmitterEnergy(LOAD):
+    """
     
+
+    Parameters
+    ----------
+    FREQUENCY_MAP : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     
+    powerOfIQ = []
+    powerOfATTEN = []
+    powerOfBUFF = []
+    powerOfFVC = []
+    powerOfOFEVC = []
+    powerOfFM = []
+    powerOfCLK = []
+    powerOfDC = []
+    powerOfADC = []
     
+    for l in LOAD:
+        
+        powerOfIQ.append(returnTotalRFComponentPower(component = 'IQMOD', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfATTEN.append(returnTotalRFComponentPower(component = 'ATTEN', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfBUFF.append(returnTotalRFComponentPower(component = 'BUFFER', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfFVC.append(returnTotalRFComponentPower(component = 'FOWARD_VOLTAGE_CONTROL', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfOFEVC.append(returnTotalRFComponentPower(component = 'FEEDBACK_VOLTAGE_CONROL', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfFM.append(returnTotalRFComponentPower(component = 'FEEDBACK_MIXER', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfCLK.append(returnTotalRFComponentPower(component = 'CLOCK', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+        powerOfDC.append(returnTotalRFComponentPower(component = 'DAC_CONCVERTER', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'],l]))
+        powerOfADC.append(returnTotalRFComponentPower(component = 'ADC_CONTROL', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l]))
+               
+        
+    return np.array(powerOfIQ), np.array(powerOfATTEN), np.array(powerOfBUFF), np.array(powerOfFVC), np.array(powerOfOFEVC), np.array(powerOfFM), np.array(powerOfCLK), np.array(powerOfDC), np.array(powerOfADC)
+    
+
+def returnFigure2RFReceiverEnergy(LOAD):
+    """
+    
+
+    Parameters
+    ----------
+    FREQUENCY_MAP : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+
+    powerOfLNA1 = []
+    powerOfATTEN = []
+    powerOfLNA2 = []
+    powerOfDUAL_MIXER = []
+    powerOfOVGA = []
+    powerOfCLKGEN = []
+    powerOfADC = []
+    
+    for l in LOAD:
+        
+        powerOfLNA1.append(returnTotalRFComponentPower(component = 'LNA1', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfATTEN.append(returnTotalRFComponentPower(component = 'ATTEN', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfLNA2.append(returnTotalRFComponentPower(component = 'LNA2', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfDUAL_MIXER.append(returnTotalRFComponentPower(component = 'DUAL_MIXER', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfOVGA.append(returnTotalRFComponentPower(component = 'VGA', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfCLKGEN.append(returnTotalRFComponentPower(component = 'CLOCK_GEN', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+        powerOfADC.append(returnTotalRFComponentPower(component = 'ADC', current_values=[MY_PARAMETERS['BW'], MY_PARAMETERS['Ant'], MY_PARAMETERS['M'], MY_PARAMETERS['R'], MY_PARAMETERS['dt'], l], transmitter = False))
+               
+    return np.array(powerOfLNA1), np.array(powerOfATTEN), np.array(powerOfLNA2), np.array(powerOfDUAL_MIXER), np.array(powerOfOVGA), np.array(powerOfCLKGEN), np.array(powerOfADC)
+
+
+def returnPA(LOAD):
+    numberOfAntennas = MY_PARAMETERS['Ant']
+    maximumPower = 390 * numberOfAntennas
+    minimumPower = 11 * numberOfAntennas
+    return np.linspace(minimumPower, maximumPower, len(LOAD))
+
+
+def returnOverHeadHelper(BBPower, RFPower, PAPower):
+    coolingOH = 0.1
+    DC_DCOH = 0.05
+    AC_DCOH = 0.1
+    return (BBPower + RFPower + PAPower) * ((1 + coolingOH)*(1+DC_DCOH)*(1 + AC_DCOH) - 1)
+    
+def returnOverHead(BBPower, RFPower, PAPower):
+    overHead = []
+    for idx, value in enumerate(BBPower):
+        overHead.append(returnOverHeadHelper(value, RFPower[idx], PAPower[idx]))
+        
+    return np.array(overHead)
     
     
     
