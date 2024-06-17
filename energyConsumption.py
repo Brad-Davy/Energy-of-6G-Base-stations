@@ -25,16 +25,24 @@ MY_PARAMETERS = {'BW' : 50, 'Ant' : 2, 'M' : 3/4, 'R' : 2, 'dt' : 1, 'df' : 100}
 #     dt = Time-domain duty-cycling -> Default value: 1.
 #     df = Frequency-domain duty-cycling -> Default value: 1.
 # =============================================================================
-    
 
-BASE_BAND_COMPONENTS = {'DPD' : True, 'Filter' : True, 'OFDM' : True, 'FD' : True, 
-                      'FD_NL' : True, 'FEC' : True, 'CPU' : True}
+# =============================================================================
+# Scaling exponents
+# =============================================================================
 
-RF_COMPONENTS = {} # Need to add these from below
-
-BASE_BAND_SCALING = {'CPU' : [0,0,0,1,0,0],
+BASE_BAND_SCALING_DOWN = {'CPU' : [0,0,0,1,0,0],
             'FEC' : [1,1,1,1,1,1],
             'FD_NL' : [1,0,0,2,1,1],
+            'FD' : [1,0,0,1,1,1],
+            'CRPI' : [1,1,1,1,1,1],
+            'DPD' : [1,0,0,1,1,0],
+            'FILTER' : [1,0,0,1,1,0],
+            'OFDM' : [1,0,0,1,1,0]}
+
+
+BASE_BAND_SCALING_UP = {'CPU' : [0,0,0,1,0,0],
+            'FEC' : [1,1,1,1,1,1],
+            'FD_NL' : [1,0,0,3,1,1],
             'FD' : [1,0,0,1,1,1],
             'CRPI' : [1,1,1,1,1,1],
             'DPD' : [1,0,0,1,1,0],
@@ -59,32 +67,6 @@ RF_SCALING_RECEIVER = {'LNA1' : [0,1,0,0,1,1],
                        'VGA' : [0,1,0,0,1,1],
                        'CLOCK_GEN' : [0,1,0,0,1,1],
                        'ADC' : [0,1,0,0,1,1]}
-
-
-
-# =============================================================================
-# Refernce enegry useage for the RF components in mW
-# =============================================================================
-
-RF_COMPONENT_POWER_TRANSMITTER = {'IQMOD' : 1000,
-                          'ATTEN' : 10,
-                          'BUFFER' : 300,
-                          'FOWARD_VOLTAGE_CONTROL' : 170,
-                          'FEEDBACK_VOLTAGE_CONROL' : 170,
-                          'FEEDBACK_MIXER' : 1000,
-                          'CLOCK' : 990,
-                          'DAC_CONCVERTER' : 1370,
-                          'ADC_CONTROL' : 730}
-
-
-RF_COMPONENT_POWER_RECEIVER = {'LNA1' : 300,
-                       'ATTEN' : 10,
-                       'LNA2' : 1000,
-                       'DUAL_MIXER' : 1000,
-                       'VGA' : 650,
-                       'CLOCK_GEN' : 990,
-                       'ADC' : 1190}
-
 
 
 # =============================================================================
@@ -114,12 +96,34 @@ REFERENCE_VALUES_UP = {'CPU' : 200,
             'CRPI' : 80,
             'OFDM' : 80}
 
+# =============================================================================
+# Refernce enegry useage for the RF components in mW
+# =============================================================================
+
+RF_COMPONENT_POWER_TRANSMITTER = {'IQMOD' : 1000,
+                          'ATTEN' : 10,
+                          'BUFFER' : 300,
+                          'FOWARD_VOLTAGE_CONTROL' : 170,
+                          'FEEDBACK_VOLTAGE_CONROL' : 170,
+                          'FEEDBACK_MIXER' : 1000,
+                          'CLOCK' : 990,
+                          'DAC_CONCVERTER' : 1370,
+                          'ADC_CONTROL' : 730}
+
+
+RF_COMPONENT_POWER_RECEIVER = {'LNA1' : 300,
+                       'ATTEN' : 10,
+                       'LNA2' : 1000,
+                       'DUAL_MIXER' : 1000,
+                       'VGA' : 650,
+                       'CLOCK_GEN' : 990,
+                       'ADC' : 1190}
 
 # =============================================================================
 # Default values for parameters 
 # =============================================================================
 
-DEFAULT_PARAMETER_VALUES = [20, 6, 1, 1, 100, 100]
+DEFAULT_PARAMETER_VALUES = [20, 2, 6, 5/6, 100, 100]
 
 # =============================================================================
 # DEFAULT_BW = 10
@@ -139,7 +143,7 @@ DEFAULT_PARAMETER_VALUES = [20, 6, 1, 1, 100, 100]
 # Logic for calculating the power from the baseband units
 # =============================================================================
     
-def calculateBBComponentPower(component, current_values):
+def calculateBBComponentPower(component, current_values, dowload = True):
     """
     
 
@@ -156,8 +160,10 @@ def calculateBBComponentPower(component, current_values):
         DESCRIPTION.
 
     """
-    
-    scaling_for_component = BASE_BAND_SCALING[component]
+    if dowload == True:
+        scaling_for_component = BASE_BAND_SCALING_DOWN[component]
+    else:
+        scaling_for_component = BASE_BAND_SCALING_UP[component]
     powerConsumption = 1
 
     for idx, components in enumerate(DEFAULT_PARAMETER_VALUES):
@@ -326,7 +332,6 @@ def RFTransmitterPower(parameters = MY_PARAMETERS):
 
 def RFReceiverPower(parameters = MY_PARAMETERS):
     
-    print(parameters)
     powerOfLNA1 = returnTotalRFComponentPower(component = 'LNA1', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
     powerATTEN = returnTotalRFComponentPower(component = 'ATTEN', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
     powerOfLNA2 = returnTotalRFComponentPower(component = 'LNA2', current_values=[parameters['BW'], parameters['Ant'], parameters['M'], parameters['R'], parameters['dt'], parameters['df']], transmitter = False)
@@ -347,8 +352,6 @@ def returnOverHead(BBPower, RFPower, PAPower):
     DC_DCOH = 0.05
     AC_DCOH = 0.1
     factor =  (((1 + coolingOH) * (1 + DC_DCOH) * (1 + AC_DCOH)) - 1)
-    print(factor)
-    print(BBPower, RFPower, PAPower)
     return (BBPower + RFPower + PAPower) * factor
     
 
