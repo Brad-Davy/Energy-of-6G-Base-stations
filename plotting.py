@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from colours import *
 from scipy.interpolate import interp1d
-%matplotlib 
+# %matplotlib 
 
 plt.rcParams['font.family'] = 'Serif'
 plt.rcParams['font.size'] = 10
@@ -93,6 +93,7 @@ def reproduceFigure2():
     plt.xlabel('Load / %')
     plt.legend()
     plt.savefig('img/totalBaseBandPower.svg', dpi=500)
+    plt.show()
     
 
 
