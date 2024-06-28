@@ -104,35 +104,20 @@ def reproduceFigure2():
     plt.show()
 
 
-def determinePAHelper(target, BB, RF):
-    PA = 0
-    difference = 1
-    while difference > 0:
-        PA += 1
-        newSum = BB + RF + PA + returnOverHead(BB, RF, PA)
-        difference = target - newSum
-    return PA
+def generationPlot():
+
+    fig = plt.figure(figsize=(10*cm, 10*cm))
+    generation = [4, 5, 6]
+    power = [1320, 2750, 5297]
+    plt.xlabel('Generation')
+    plt.ylabel('Power / W')
+    plt.xticks([4, 5, 6], ['4', '5', '6'])
+    plt.scatter(generation, power, color='black')
+    plt.show()
 
 
-def determinePA():
-    load_frequency = np.array([0.0, 0.49, 0.90, 1.55, 2.36, 5.46, 9.54, 14.59,
-                              21.60, 31.54, 36.92, 45.40, 56.97, 69.19, 79.79, 85.66, 93.48, 100.70])
-    power_frequency = [398.8, 457.02, 490.23, 519.26, 531.66, 560.49, 601.70, 659.45,
-                       729.51, 820.09, 865.35, 926.98, 1009.12, 1095.36, 1165.1, 1202.02, 1263.70, 1320.6]
-
-    interpolated_data = interp1d(load_frequency, power_frequency)  # targets
-    PAlist = []
-    for idx in np.linspace(0, 100, 100):
-        target = interpolated_data(idx)
-        df = idx / 100
-        parameters = {'BW': 10, 'Ant': 4, 'M': 6, 'R': 5/6, 'dt': 1, 'df': df}
-        BB, RF, PA, Oh = returnTotalPower(parameters)
-        PA = determinePAHelper(target, BB, RF)
-        PAlist.append(PA)
-    return PAlist
-
-
+generationPlot()
 reproduceFigure2()
-parameters = {'BW': 25000, 'Ant': 8, 'M': 6, 'R': 5/6, 'dt': 1, 'df': 0.98}
+parameters = {'BW': 0.25, 'Ant': 4, 'M': 6, 'R': 5/6, 'dt': 1, 'df': 0.98}
 baseBandPower, RFPower, PAPower, OHPower = returnTotalPower(parameters)
-print((baseBandPower + RFPower + PAPower + OHPower) * 0.01)
+print((baseBandPower + RFPower + PAPower + OHPower) * 10)
