@@ -6,12 +6,13 @@ Created on Fri May 31 16:23:02 2024
 @author: bradleydavy
 """
 
+from api import getPowerConsumption, getComponentPowerConsumption
 from energyConsumption import *
 import matplotlib.pyplot as plt
 import numpy as np
 from colours import *
 from scipy.interpolate import interp1d
-# %matplotlib 
+
 
 plt.rcParams['font.family'] = 'Serif'
 plt.rcParams['font.size'] = 10
@@ -22,14 +23,14 @@ cm = 1/2.54  # centimeters in inches
 FREQUENCY_MAP = np.linspace(0, 100, 100)
 
 
-    
+
 def totalPowerBaseBand():
     fig = plt.figure(figsize = (15*cm, 7.5*cm))
     total_power = []
 
     for f in FREQUENCY_MAP:
-        parameters = {'BW' : f, 'Ant' : 4, 'M' : 3/4, 'R' : 2, 'dt' : 100, 'df' : 100}
-        total_power.append(np.sum(returnTotalPower(parameters)))
+        parameters = {'BW' : f, 'Ant' : 4, 'M' : 3/4, 'R' : 2, 'dt' : 99, 'df' : 99}
+        total_power.append(getPowerConsumption(parameters)['power'])
         
     total_power = np.array(total_power)
     
@@ -41,8 +42,7 @@ def totalPowerBaseBand():
     plt.savefig('img/totalBaseBandPower.svg', dpi=500)
     
     
-#totalPowerBaseBand()
-    
+
 def reproduceFigure2():
     
     # =============================================================================
@@ -66,11 +66,12 @@ def reproduceFigure2():
     
     for l in LOAD:
         parameters = {'BW' : 10, 'Ant' : 4, 'M' : 3/4, 'R' : 2, 'dt' : l, 'df' : 100}
-        BB, RF, PA, Oh = returnTotalPower(parameters)
-        total_power_PA.append(PA)
-        total_power_BB.append(BB)
-        total_power_RF.append(RF)
-        total_power_Oh.append(Oh)
+        componentPower = getComponentPowerConsumption(parameters)
+
+        total_power_PA.append(componentPower['PA'])
+        total_power_BB.append(componentPower['BB'])
+        total_power_RF.append(componentPower['RF'])
+        total_power_Oh.append(componentPower['Oh'])
         
     
     total_power_PA = np.array(total_power_PA)
@@ -95,15 +96,5 @@ def reproduceFigure2():
     plt.savefig('img/totalBaseBandPower.svg', dpi=500)
     plt.show()
     
-
-
-    
+totalPowerBaseBand()
 reproduceFigure2()
-    
-    
-    
-    
-    
-    
-    
-    
